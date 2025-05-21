@@ -1,5 +1,7 @@
 package com.sky.utils;
 
+import com.sky.constant.JwtClaimsConstant;
+import com.sky.context.BaseContext;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.Jwts;
@@ -52,6 +54,7 @@ public class JwtUtil {
                 .setSigningKey(secretKey.getBytes(StandardCharsets.UTF_8))
                 // 设置需要解析的jwt
                 .parseClaimsJws(token).getBody();
+
         return claims;
     }
 
