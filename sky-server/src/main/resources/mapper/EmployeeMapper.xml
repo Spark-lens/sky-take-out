@@ -2,16 +2,37 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.sky.mapper.EmployeeMapper">
+
+    <!--    用户分页查询-->
     <select id="queryByNamePagePageSize" resultType="com.sky.entity.Employee">
         select *
         from employee
         <where>
---             判断 name 的值是否存在异常（不存在、空串）
+            <!--    判断 name 的值是否存在异常（不存在、空串）-->
             <if test="name != null and name != ''">
                 name like concat ('%',#{name},'%')
             </if>
         </where>
---             按 修改日期 降序排序
+            <!--    按 修改日期 降序排序-->
             order by update_time desc
     </select>
+
+    <!--更新用户信息-->
+    <update id="update">
+        UPDATE employee
+        <set>
+            <if test="name != null and name != ''"> name = #{name}, </if>
+            <if test="username != null and username != ''"> username = #{username},</if>
+            <if test="password != null and password != ''"> password = #{password},</if>
+            <if test="phone != null and phone != ''"> phone = #{phone},</if>
+            <if test="sex != null and sex != ''"> sex = #{sex},</if>
+            <if test="idNumber != null and idNumber != ''"> id_number = #{idNumber},</if>
+            <if test="status != null"> status = #{status},</if>
+            <if test="updateTime != null"> update_time = #{updateTime}, </if>
+            <if test="updateUser != null"> update_user = #{updateUser}</if>
+        </set>
+        <where>
+            id = #{id}
+        </where>
+    </update>
 </mapper>

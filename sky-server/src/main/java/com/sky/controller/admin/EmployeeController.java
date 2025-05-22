@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.websocket.server.PathParam;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -104,5 +105,21 @@ public class EmployeeController {
         PageResult pageResult = employeeService.pageQuery(employeePageQueryDTO);
         return Result.success(pageResult);
     }
+
+    /**
+     * 启用、禁用员工账号
+     * @param id
+     * @param status
+     * @return
+     */
+    @ApiOperation(value = "启用、禁用员工账号")
+    @PostMapping("/status/{status}")
+    public Result<PageResult> startOrStop(@RequestParam(value = "id") Long id,
+                                          @PathVariable(value = "status") Integer status){
+        log.info("启用、禁用员工账号：启用=1 | 禁用=0 ：{},员工id：{}",status,id);
+        employeeService.startOrStop(id,status);
+        return Result.success();
+    }
+
 
 }
