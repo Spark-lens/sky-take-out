@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 
 @Slf4j
@@ -111,5 +112,51 @@ public class DishServiceImpl implements DishService {
         dishMapper.deleteByIds(ids);
         // 菜品口味关系表 - 删除数据
         dishFlavorsMapper.deleteByDishIds(ids);
+    }
+
+    /**
+     * 根据id查询菜品
+     * @param id
+     * @return
+     */
+    @Override
+    public DishVO getByidWithFlavor(Long id) {
+        // 根据 id 获取 Dish
+        Dish dish = dishMapper.getDishById(id);
+
+        // 获取 DishId 对应的 flavors 数据
+        List<DishFlavor> dishFlavorList = dishFlavorsMapper.getFlavorByDishId(dish.getId());
+
+        // 封装到 DishVO
+        DishVO dishVO = new DishVO();
+        BeanUtils.copyProperties(dish,dishVO);
+        dishVO.setFlavors(dishFlavorList);
+
+        return dishVO;
+    }
+
+    /**
+     * 修改菜品
+     * @param dishDTO
+     */
+    @Override
+    public void updateWithFlavor(DishDTO dishDTO) {
+        Dish dish = new Dish();
+        BeanUtils.copyProperties(dishDTO,dish);
+
+        // 修改菜品基本信息
+        dishMapper.update(dish);
+
+        // 删除 口味，再新增口味
+        dishFlavorsMapper.deleteByDishIds(Collections.singletonList(dishDTO.getId()));
+
+        // 菜品设置dishId、重新设置口味
+        List<DishFlavor> flavors = dishDTO.getFlavors();
+        if (flavors != null && !flavors.isEmpty()){
+            flavors.forEach(flavor -> flavor.setDishId(dishDTO.getId()));
+            // 重新设置菜品口味
+            dishFlavorsMapper.insertBatch(flavors);
+        }
+
     }
 }
