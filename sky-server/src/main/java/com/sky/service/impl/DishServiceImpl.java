@@ -1,11 +1,16 @@
 package com.sky.service.impl;
 
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.sky.dto.DishDTO;
+import com.sky.dto.DishPageQueryDTO;
 import com.sky.entity.Dish;
 import com.sky.entity.DishFlavor;
 import com.sky.mapper.DishFlavorsMapper;
 import com.sky.mapper.DishMapper;
+import com.sky.result.PageResult;
 import com.sky.service.DishService;
+import com.sky.vo.DishVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,5 +56,26 @@ public class DishServiceImpl implements DishService {
 
         // 批量插入菜品口味(n条数据)
         dishFlavorsMapper.insertBatch(flavors);
+    }
+
+
+    /**
+     * 菜品分页查询
+     * @param dishPageQueryDTO
+     * @return
+     */
+    @Override
+    public PageResult page(DishPageQueryDTO dishPageQueryDTO) {
+        // 设置分页参数
+        PageHelper.startPage(dishPageQueryDTO.getPage(),dishPageQueryDTO.getPageSize());
+        // 获取查询 结果
+        Page<DishVO> page = dishMapper.pageQuery(dishPageQueryDTO);
+        // 获取total
+        long total = page.getTotal();
+        // 获取 List<DishVO>
+        List<DishVO> result = page.getResult();
+        // 封装为 分页结果 返回
+        PageResult pageResult = new PageResult(total, result);
+        return pageResult;
     }
 }
