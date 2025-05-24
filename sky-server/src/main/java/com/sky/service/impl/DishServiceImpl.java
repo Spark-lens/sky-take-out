@@ -2,12 +2,15 @@ package com.sky.service.impl;
 
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.sky.constant.StatusConstant;
 import com.sky.dto.DishDTO;
 import com.sky.dto.DishPageQueryDTO;
 import com.sky.entity.Dish;
 import com.sky.entity.DishFlavor;
+import com.sky.entity.SetmealDish;
 import com.sky.mapper.DishFlavorsMapper;
 import com.sky.mapper.DishMapper;
+import com.sky.mapper.SetmealDishMapper;
 import com.sky.result.PageResult;
 import com.sky.service.DishService;
 import com.sky.vo.DishVO;
@@ -28,6 +31,9 @@ public class DishServiceImpl implements DishService {
 
     @Autowired
     private DishFlavorsMapper dishFlavorsMapper;
+
+    @Autowired
+    private SetmealDishMapper setmealDishMapper;
 
 
     /**
@@ -77,5 +83,33 @@ public class DishServiceImpl implements DishService {
         // 封装为 分页结果 返回
         PageResult pageResult = new PageResult(total, result);
         return pageResult;
+    }
+
+    /**
+     * 批量删除菜品
+     * @param ids
+     */
+    @Transactional
+    @Override
+    public void deleteBatch(List<Long> ids) {
+
+        // 判断当前菜品是否能够删除---是否存在起售中的菜品？？
+        List<Dish> dishList = dishMapper.getDishByIds(ids);     // 根据 菜品id数组 ，获取菜品
+        for (Dish dish : dishList) {
+            if (dish.getStatus() == StatusConstant.ENABLE){
+                throw new RuntimeException("菜品属于在售状态，不可删除！");
+            }
+        }
+
+        // 判断当前菜品是否能够删除---是否被套餐关联了？？
+        List<SetmealDish> setmealDishList = setmealDishMapper.getByDishIds(ids);     // 根据 菜品id数组 ，获取套餐菜品关系
+        if (setmealDishList != null && !setmealDishList.isEmpty()){
+            throw new RuntimeException("菜品被套餐关联");
+        }
+
+        // 菜品表 - 删除菜品数据
+        dishMapper.deleteByIds(ids);
+        // 菜品口味关系表 - 删除数据
+        dishFlavorsMapper.deleteByDishIds(ids);
     }
 }

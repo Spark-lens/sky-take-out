@@ -10,6 +10,7 @@
             (#{name},#{categoryId},#{price},#{image},#{description},#{createTime}, #{updateTime},#{createUser},#{updateUser})
     </insert>
 
+
     <select id="pageQuery" resultType="com.sky.vo.DishVO">
         select
             d.*,
@@ -30,4 +31,24 @@
         </where>
         order by d.update_time desc
     </select>
+
+    <select id="getDishByIds" resultType="com.sky.entity.Dish">
+        select * from dish
+        <where>
+            id in
+            <foreach collection="ids" item="id" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+        </where>
+    </select>
+
+    <delete id="deleteByIds">
+        delete from dish
+        <where>
+            id in
+            <foreach collection="ids" item="id" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+        </where>
+    </delete>
 </mapper>

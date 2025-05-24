@@ -10,6 +10,8 @@ import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 
+import java.util.List;
+
 @Mapper
 public interface DishMapper {
 
@@ -34,4 +36,17 @@ public interface DishMapper {
      * @return
      */
     Page<DishVO> pageQuery(DishPageQueryDTO dishPageQueryDTO);
+
+    /**
+     * 根据 菜品id数组 ，获取菜品
+     * @param ids
+     * @return
+     */
+    List<Dish> getDishByIds(List<Long> ids);
+
+    /**
+     * 菜品表 - 删除菜品数据
+     * @param ids
+     */
+    void deleteByIds(List<Long> ids);
 }
