@@ -7,7 +7,14 @@ sky:
     username: root
     password: 123456
 
-  # 设置 阿里云 OSS
+  # 配置 redis 数据源
+  redis:
+    host: localhost
+    port: 6379
+    password: 123456
+    database: 15
+
+  # 配置 阿里云 OSS
   alioss:
     endpoint: oss-cn-beijing.aliyuncs.com
     access-key-id: *
