@@ -40,6 +40,10 @@ public class JwtTokenUserInterceptor implements HandlerInterceptor {
             return true;
         }
 
+        // 排查 token 为空的问题？
+        log.info("JwtProperties : {}",jwtProperties);
+
+
         //1、从请求头中获取令牌
         String token = request.getHeader(jwtProperties.getUserTokenName());
 
@@ -47,10 +51,10 @@ public class JwtTokenUserInterceptor implements HandlerInterceptor {
         try {
             log.info("jwt校验:{}", token);
             Claims claims = JwtUtil.parseJWT(jwtProperties.getUserSecretKey(), token);
-            Long empId = Long.valueOf(claims.get(JwtClaimsConstant.EMP_ID).toString());
-            log.info("当前员工id：", empId);
+            Long userId = Long.valueOf(claims.get(JwtClaimsConstant.USER_ID).toString());
+            log.info("当前员工id：{}", userId);
             // 将 EmpId 放入 threadLocal，以方便后续环节取到（如：新增员工需要获取当前操作人的 id）
-            BaseContext.setCurrentId(empId);
+            BaseContext.setCurrentId(userId);
 
 
             //3、通过，放行

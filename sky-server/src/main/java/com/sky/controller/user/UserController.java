@@ -49,6 +49,8 @@ public class UserController {
         claims.put(JwtClaimsConstant.USER_ID,user.getId());
         String token = JwtUtil.createJWT(jwtProperties.getUserSecretKey(), jwtProperties.getUserTtl(), claims);
 
+        log.info("用户 token:{}",token);
+
         // 构建返回数据
         UserLoginVO userLoginVO = UserLoginVO.builder()
                 .id(user.getId())           // 用户id
