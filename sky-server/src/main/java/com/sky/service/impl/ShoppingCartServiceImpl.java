@@ -36,7 +36,7 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         ShoppingCart shoppingCart = new ShoppingCart();
         BeanUtils.copyProperties(shoppingCartDTO,shoppingCart);
         // 只能查询自己的购物车数据
-        if (BaseContext.getCurrentId() != null){
+        if (BaseContext.getCurrentId() == null){
             throw new RuntimeException("userId 为空");
         }
         shoppingCart.setUserId(BaseContext.getCurrentId());
