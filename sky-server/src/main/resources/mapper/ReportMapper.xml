@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.sky.mapper.ReportMapper">
+
+    <select id="sunByMap" resultType="java.lang.Double">
+        select
+            sum(amount) turnover
+        from orders
+        <where>
+            <if test="status != null"> and status = #{status} </if>
+            <if test="begin != null"> and order_time &gt;= #{begin} </if>
+            <if test="end != null"> and order_time &lt;= #{end} </if>
+        </where>
+    </select>
+
+    <select id="getUserNumber" resultType="java.lang.Integer">
+        select
+            count(*) number
+        from user
+        <where>
+            <if test="begin != null"> and create_time &gt;= #{begin} </if>
+            <if test="end != null"> and create_time &lt;= #{end} </if>
+        </where>
+
+    </select>
+
+    <select id="getOrderNumber" resultType="java.lang.Integer">
+        select
+            count(*) number
+        from orders
+        <where>
+            <if test="status != null"> and status = #{status} </if>
+            <if test="begin != null"> and order_time &gt;= #{begin} </if>
+            <if test="end != null"> and order_time &lt;= #{end} </if>
+        </where>
+    </select>
+
+    <select id="getSalesTop10" resultType="com.sky.dto.GoodsSalesDTO">
+        select
+            od.name name,
+            sum(od.number) number
+        from order_detail od
+            left join orders o on od.order_id = o.id
+        where
+            o.status = 5
+            <if test="beginTime != null"> and order_time &gt;= #{beginTime} </if>
+            <if test="endTime != null"> and order_time &lt;= #{endTime} </if>
+        group by name
+        order by number desc
+        limit 0,10
+    </select>
+
+</mapper>
