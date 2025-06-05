@@ -4,14 +4,20 @@ import com.sky.dto.GoodsSalesDTO;
 import com.sky.entity.Orders;
 import com.sky.mapper.ReportMapper;
 import com.sky.service.ReportService;
-import com.sky.vo.OrderReportVO;
-import com.sky.vo.SalesTop10ReportVO;
-import com.sky.vo.TurnoverReportVO;
-import com.sky.vo.UserReportVO;
+import com.sky.service.WorkspaceService;
+import com.sky.vo.*;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -20,11 +26,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class ReportServiceImpl implements ReportService {
 
     @Autowired
     private ReportMapper reportMapper;
+
+    @Autowired
+    private WorkspaceService workspaceService;
 
     /**
      * 根据时间区间统计，获取营业额
@@ -240,5 +250,66 @@ public class ReportServiceImpl implements ReportService {
     }
 
 
+    /**
+     * 导出近30天的运营数据报表
+     * @param response
+     */
+    @Override
+    public void exportBusinessData(HttpServletResponse response) {
 
+        // 设置时间范围
+        LocalDate begin = LocalDate.now().minusDays(30);
+        LocalDate end = LocalDate.now().minusDays(1);
+        // 获取数据
+        BusinessDataVO businessDataVO = workspaceService.getBusinessData(LocalDateTime.of(begin,LocalTime.MIN), LocalDateTime.of(end,LocalTime.MAX));
+        // 写入数据
+        InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream("./template/运营数据报表模板.xlsx");
+        try {
+            // 基于模板文件创建一个新的 excle 表格对象
+            XSSFWorkbook excle = new XSSFWorkbook(inputStream);
+            // 获得 excle 文件中的一个 sheet 页
+            XSSFSheet sheet = excle.getSheet("Sheet1");
+
+            // 写入 日期数据
+            sheet.getRow(1).getCell(1).setCellValue(begin + "~" + end);
+            // 写入概览数据
+            XSSFRow row = sheet.getRow(3);
+            row.getCell(2).setCellValue(businessDataVO.getTurnover());              // 写入营业额
+            row.getCell(4).setCellValue(businessDataVO.getOrderCompletionRate());   // 写入订单完成率
+            row.getCell(6).setCellValue(businessDataVO.getNewUsers());              // 写入新增用户数
+            row = sheet.getRow(4);
+            row.getCell(2).setCellValue(businessDataVO.getValidOrderCount());       // 写入有效订单数
+            row.getCell(4).setCellValue(businessDataVO.getUnitPrice());             // 写入平均客单价
+
+            // 循环写入 明细数据
+            for (int i = 0; i < 30; i++) {
+                LocalDateTime beginTime = LocalDateTime.of(begin, LocalTime.MIN);
+                LocalDateTime endTime = LocalDateTime.of(begin, LocalTime.MAX);
+                log.info("日期： {}  - 明细数据",begin);
+                // 获取每天的具体数据
+                BusinessDataVO businessDataVODay = workspaceService.getBusinessData(beginTime, endTime);
+                log.info("日期： {}  - 明细数据 {} ",begin,businessDataVODay);
+                row = sheet.getRow(7 + i);
+                row.getCell(1).setCellValue(String.valueOf(begin));                         // 写入日期
+                row.getCell(2).setCellValue(businessDataVODay.getTurnover());               // 写入营业额
+                row.getCell(3).setCellValue(businessDataVODay.getValidOrderCount());        // 写入有效订单数
+                row.getCell(4).setCellValue(businessDataVODay.getOrderCompletionRate());    // 写入订单完成率
+                row.getCell(5).setCellValue(businessDataVODay.getUnitPrice());              // 写入平均客单价
+                row.getCell(6).setCellValue(businessDataVODay.getNewUsers());               // 写入新增用户数
+                // 日期 + 一天
+                begin = begin.plusDays(1);
+            }
+
+            // 导出 excle
+            ServletOutputStream outputStream = response.getOutputStream();
+            excle.write(outputStream);
+
+            // 关闭资源
+            outputStream.flush();
+            outputStream.close();
+            excle.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

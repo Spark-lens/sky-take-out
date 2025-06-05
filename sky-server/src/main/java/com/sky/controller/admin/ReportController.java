@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletResponse;
 import java.time.LocalDate;
 
 /**
@@ -93,6 +94,14 @@ public class ReportController {
         log.info("订单统计，开始时间：{}，结束时间：{}",begin,end);
         SalesTop10ReportVO salesTop10ReportVO = reportService.getSalesTop10(begin,end);       // 根据时间区间统计销售Top10
         return Result.success(salesTop10ReportVO);
+    }
+
+    @GetMapping("/export")
+    @ApiOperation("导出 Excle 报表接口")
+    public Result export(HttpServletResponse response){
+        log.info("导出报表");
+        reportService.exportBusinessData(response);
+        return Result.success();
     }
 
 }
